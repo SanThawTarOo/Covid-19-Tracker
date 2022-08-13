@@ -1,13 +1,24 @@
-import { FormControl, MenuItem, Select } from '@mui/material';
+import { CardContent, FormControl, MenuItem, Select, Card} from '@mui/material';
 import { useEffect, useState } from 'react';
 import InfoBox from './components/InfoBox';
 import Map from './components/Map'
+import Table from './components/Table'
 import './App.css';
 
 function App() {
 
   const [countries, setCountries] = useState([]);
   const [country, setCountry] = useState('worldwide');
+  const [countryInfo, setCountryInfo] = useState({});
+  const [tableData, setTableData] = useState([]);
+
+  useEffect(()=>{
+    fetch("https://disease.sh/v3/covid-19/all")
+    .then(response => response.json())
+    .then(data => {
+      setCountryInfo(data);
+    });
+  },[])
 
   //https://disease.sh/v3/covid-19/countries
   //UseEffect = Runs a piece of code
@@ -15,7 +26,7 @@ function App() {
 
   useEffect(()=>{
     //The code inside here will run once
-    //when the component loads and not again
+    //when the component loads an d not again
     //asyn-> send a request, wait for it,do something with input
 
     const getCountriesData = async()=>{
@@ -28,6 +39,7 @@ function App() {
             value: country.countryInfo.iso2 //UK,USA,FR
           }
         ));
+        setTableData(data);
         setCountries(countries);
       });
     };
@@ -35,47 +47,74 @@ function App() {
   },[]);
 
   const onCountryChange = async (event)=>{
+    
     const countryCode = event.target.value;
     setCountry(countryCode);
 
-  }
+    const url =
+     countryCode === 'worldwide' ? 'https://disease.sh/v3/covid-19/all' :
+    `https://disease.sh/v3/covid-19/countries/${countryCode}` ;
+  
+  //https://disease.sh/v3/covid-19/all
+  //https://disease.sh/v3/covid-19/countries/[COUNTRY_CODE]
+  
+    await fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      setCountry(countryCode);
+
+      //All of the data form the country response
+      setCountryInfo(data);
+    });
+  };
+  console.log("country ",countryInfo)
+
 
   return (
-    <div className="App">
-      <div className='app_header'>
-        <h1>Co</h1>
-        <FormControl className='app_dropdown'>
+    <div className="app">
+      <div className='app_left'>
+          <div className='app_header'>
+            <h1>COVID-19 TRACKER</h1>
+            <FormControl className='app_dropdown'>
 
-          {/* Loop through all the countries and show a drop down list of the options*/}
+              {/* Loop through all the countries and show a drop down list of the options*/}
+              
+              <Select variant="outlined" value={country} onChange={onCountryChange}>
+                <MenuItem value="worldwide">WorldWide</MenuItem>
+                {
+                  countries.map(country => (
+                    <MenuItem value={country.value}>{country.name}</MenuItem>
+                  ))
+                }
+              </Select>
+              
+
+              {/* <Select variant="outlined" value="abc">
+                <MenuItem value="worldwide">Worldwide</MenuItem>
+                <MenuItem value="worldwide">Option 1</MenuItem>
+                <MenuItem value="worldwide">Option 2</MenuItem>
+                <MenuItem value="worldwide">Option 3</MenuItem>
+              </Select> */}
+            </FormControl>
+          </div>
           
-          <Select variant="outlined" value={country} onChange={onCountryChange}>
-            <MenuItem value="worldwide">WorldWide</MenuItem>
-            {
-              countries.map(country => (
-                <MenuItem value={country.value}>{country.name}</MenuItem>
-              ))
-            }
-          </Select>
-          
+          <div className='app_stats'>
+              <InfoBox title='Coronavirus Cases' cases={countryInfo.todayCases} total={countryInfo.cases}/>
+              <InfoBox title='Recovered' cases={countryInfo.todayRecovered} total={countryInfo.recovered}/>
+              <InfoBox title='Deaths' cases={countryInfo.todayDeaths} total={countryInfo.deaths}/>
+          </div>
 
-          {/* <Select variant="outlined" value="abc">
-            <MenuItem value="worldwide">Worldwide</MenuItem>
-            <MenuItem value="worldwide">Option 1</MenuItem>
-            <MenuItem value="worldwide">Option 2</MenuItem>
-            <MenuItem value="worldwide">Option 3</MenuItem>
-          </Select> */}
-        </FormControl>
-      </div>
-      
-      <div className='app_stats'>
-          <InfoBox title='Coronavirus Cases' cases={1} total={2000}/>
-          <InfoBox title='Recovered' cases={2} total={3000}/>
-          <InfoBox title='Deaths' cases={3} total={4000}/>
+          <Map />
       </div>
 
-      <Map />
+      <Card  className='app_right'>
+          <CardContent>
+            <h3>Live Cases By Country</h3>
+            <Table countries={tableData} />
+            <h3>WorldWide new cases</h3>
+          </CardContent>
+      </Card>
 
-      {/* Table */}
       {/* Graph */}
 
       {/* Map */}
