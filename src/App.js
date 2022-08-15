@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import InfoBox from './components/InfoBox';
 import Map from './components/Map'
 import Table from './components/Table'
+import { sortData } from './components/util';
+import LineGraph from './components/LineGraph';
 import './App.css';
 
 function App() {
@@ -39,7 +41,9 @@ function App() {
             value: country.countryInfo.iso2 //UK,USA,FR
           }
         ));
-        setTableData(data);
+
+        const sortedData = sortData(data);
+        setTableData(sortedData);
         setCountries(countries);
       });
     };
@@ -74,7 +78,7 @@ function App() {
     <div className="app">
       <div className='app_left'>
           <div className='app_header'>
-            <h1>COVID-19 TRACKER</h1>
+            <h1>CO</h1>
             <FormControl className='app_dropdown'>
 
               {/* Loop through all the countries and show a drop down list of the options*/}
@@ -112,13 +116,9 @@ function App() {
             <h3>Live Cases By Country</h3>
             <Table countries={tableData} />
             <h3>WorldWide new cases</h3>
-          </CardContent>
+            <LineGraph />
+          </CardContent>   
       </Card>
-
-      {/* Graph */}
-
-      {/* Map */}
-
     </div>
   );
 }
