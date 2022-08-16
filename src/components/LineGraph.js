@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import {Line} from 'react-chartjs-2';
-import { Numeral } from 'numeral';
+import numeral from 'numeral';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -23,9 +23,9 @@ ChartJS.register(
 );
 
 const options = {
-    legend: {
-        display: false,
-    },
+    // legend: {
+    //     display: false,
+    // },
     elements: {
         point: {
             radius: 0,
@@ -39,7 +39,7 @@ const options = {
         callbacks: {
             label: function(tooltipItem, data){
                 console.log("Data",tooltipItem.value);
-                return Numeral(tooltipItem.value).format("+0.0");
+                return numeral(tooltipItem.value).format("+0,0");
             },
         },
     },
@@ -56,11 +56,14 @@ const options = {
         yAxes: [
             {
                 gridLines: {
-                    display: false,
+                    display: true,
                 },
                 ticks: {
                     callback: function(value, index, values){
-                        return Numeral(value).format('0 a');
+                        const v = value;
+                        console.log("Numeral:",v);
+                        return numeral(value).format('0a');
+                        
                     },
                 },
             },
@@ -92,14 +95,14 @@ function LineGraph({casesType="cases"}) {
 
     useEffect(()=>{
         const fetchData = async () => {
-            await fetch('https://disease.sh/v3/covid-19/historical/all?lastdays=120')
+            await fetch('https://disease.sh/v3/covid-19/historical/all?lastdays=12')
                 .then((response) => {
                    return response.json();
                 })
                 .then((data) =>{
                     let chartData = buildChartData(data,casesType);
                     setData(chartData);
-                    console.log(chartData);
+                    console.log("ChartData",chartData);
                 });
         };
        fetchData();
@@ -128,5 +131,5 @@ function LineGraph({casesType="cases"}) {
   )
 }
 
-
+<script src="numeral.min.js"></script>
 export default LineGraph

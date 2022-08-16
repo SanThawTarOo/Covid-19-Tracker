@@ -5,6 +5,7 @@ import Map from './components/Map'
 import Table from './components/Table'
 import { sortData } from './components/util';
 import LineGraph from './components/LineGraph';
+import "leaflet/dist/leaflet.css"
 import './App.css';
 
 function App() {
@@ -13,6 +14,8 @@ function App() {
   const [country, setCountry] = useState('worldwide');
   const [countryInfo, setCountryInfo] = useState({});
   const [tableData, setTableData] = useState([]);
+  const [mapCenter, setMapCenter] = useState({ lat: 34.80746, lng:-40.4796});
+  const [mapZoom, setMapZoom] = useState(3);
 
   useEffect(()=>{
     fetch("https://disease.sh/v3/covid-19/all")
@@ -53,22 +56,26 @@ function App() {
   const onCountryChange = async (event)=>{
     
     const countryCode = event.target.value;
-    setCountry(countryCode);
+    // setCountry(countryCode);
 
     const url =
-     countryCode === 'worldwide' ? 'https://disease.sh/v3/covid-19/all' :
-    `https://disease.sh/v3/covid-19/countries/${countryCode}` ;
+     countryCode === 'worldwide' 
+     ? 'https://disease.sh/v3/covid-19/all'
+     : `https://disease.sh/v3/covid-19/countries/${countryCode}` ;
   
   //https://disease.sh/v3/covid-19/all
   //https://disease.sh/v3/covid-19/countries/[COUNTRY_CODE]
   
     await fetch(url)
     .then(response => response.json())
-    .then(data => {
+    .then((data) => {
       setCountry(countryCode);
 
       //All of the data form the country response
       setCountryInfo(data);
+
+      setMapCenter([data.countryInfo.lat, data.countryInfo.lng]);
+      setMapZoom(4);
     });
   };
   console.log("country ",countryInfo)
@@ -78,7 +85,7 @@ function App() {
     <div className="app">
       <div className='app_left'>
           <div className='app_header'>
-            <h1>CO</h1>
+            <h1>COVID-19 Tracker</h1>
             <FormControl className='app_dropdown'>
 
               {/* Loop through all the countries and show a drop down list of the options*/}
@@ -108,7 +115,7 @@ function App() {
               <InfoBox title='Deaths' cases={countryInfo.todayDeaths} total={countryInfo.deaths}/>
           </div>
 
-          <Map />
+          <Map center={mapCenter} zoom={mapZoom}/>
       </div>
 
       <Card  className='app_right'>
